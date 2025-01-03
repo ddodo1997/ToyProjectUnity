@@ -29,7 +29,7 @@ public class Zombies : MonoBehaviour
     private void OnEnable()
     {
         currnetWayPoint = 0;
-        hitTargetList.Clear();
+        //hitTargetList.Clear();
     }
 
     private void Update()
@@ -56,7 +56,7 @@ public class Zombies : MonoBehaviour
                 Vector3 targetPos = EnemyColli.transform.position;
                 Vector3 targetDir = (targetPos - myPos).normalized;
                 float targetAngle = Mathf.Acos(Vector3.Dot(lookDir, targetDir)) * Mathf.Rad2Deg;
-                if (targetAngle <= ViewAngle && !Physics.Raycast(myPos, targetDir, ViewRadius, ObstacleMask))
+                if (targetAngle <= ViewAngle && !Physics.Raycast(myPos, targetDir, ViewRadius, ObstacleMask) && EnemyColli.CompareTag("Player"))
                 {
                     hitTargetList.Add(EnemyColli);
                 }
