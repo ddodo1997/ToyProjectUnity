@@ -11,8 +11,10 @@ public class Zombies : MonoBehaviour
     [SerializeField] List<Collider> hitTargetList = new List<Collider>();
 
     public List<Vector3> points = new List<Vector3>();
+    public GameManager manager;
     private readonly int moveSpeed = Animator.StringToHash("Movement");
     private readonly int targetDistance = Animator.StringToHash("TargetDistance");
+    private readonly int targetIsDead = Animator.StringToHash("PlayerIsDead");
     private Animator animator;
     private NavMeshAgent agent;
     private int currnetWayPoint = 0;
@@ -27,31 +29,34 @@ public class Zombies : MonoBehaviour
     private void OnEnable()
     {
         currnetWayPoint = 0;
+        hitTargetList.Clear();
     }
 
     private void Update()
     {
+        if (hitTargetList.Count != 0 && hitTargetList[0].GetComponent<Player>().isDead)
+        {
+            animator.SetBool(targetIsDead, hitTargetList[0].GetComponent<Player>().isDead);
+            return;
+        }
 
         animator.SetFloat(moveSpeed, agent.velocity.magnitude / agent.speed);
-        //SetSight();
+
         Vector3 myPos = transform.position + Vector3.up * 0.5f;
 
-        float lookingAngle = transform.eulerAngles.y;  //캐릭터가 바라보는 방향의 각도
-        Vector3 rightDir = AngleToDir(transform.eulerAngles.y + ViewAngle * 0.5f);
-        Vector3 leftDir = AngleToDir(transform.eulerAngles.y - ViewAngle * 0.5f);
+        float lookingAngle = transform.eulerAngles.y;
         Vector3 lookDir = AngleToDir(lookingAngle);
 
         if (hitTargetList.Count <= 0)
         {
             Collider[] Targets = Physics.OverlapSphere(myPos, ViewRadius, TargetMask);
 
-            if (Targets.Length == 0) return;
             foreach (Collider EnemyColli in Targets)
             {
                 Vector3 targetPos = EnemyColli.transform.position;
                 Vector3 targetDir = (targetPos - myPos).normalized;
                 float targetAngle = Mathf.Acos(Vector3.Dot(lookDir, targetDir)) * Mathf.Rad2Deg;
-                if (targetAngle <= ViewAngle * 0.5f && !Physics.Raycast(myPos, targetDir, ViewRadius, ObstacleMask))
+                if (targetAngle <= ViewAngle && !Physics.Raycast(myPos, targetDir, ViewRadius, ObstacleMask))
                 {
                     hitTargetList.Add(EnemyColli);
                 }
@@ -67,6 +72,9 @@ public class Zombies : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (hitTargetList.Count != 0 && hitTargetList[0].GetComponent<Player>().isDead)
+            return;
+
         if (!agent.pathPending && agent.remainingDistance < 1)
             SetWayPoint();
         
@@ -76,7 +84,10 @@ public class Zombies : MonoBehaviour
     {
         if(other.CompareTag("Player"))
         {
-            other.GetComponent<Player>().isDead = true;
+            manager.OnGameOver();
+            var player = other.GetComponent<Player>();
+            player.OnDie();
+            player.transform.forward = (transform.position - player.transform.position).normalized; 
         }
     }
 

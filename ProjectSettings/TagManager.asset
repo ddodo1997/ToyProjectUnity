@@ -7,6 +7,9 @@ TagManager:
   - Map
   - PlayerEye
   - Enemy
+  - Key
+  - Reward
+  - Escape
   layers:
   - Default
   - TransparentFX
@@ -14,7 +17,7 @@ TagManager:
   - Player
   - Water
   - UI
-  - 
+  - Walls
   - 
   - 
   - 

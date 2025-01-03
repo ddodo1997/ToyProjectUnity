@@ -3,8 +3,10 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
     Rigidbody rb;
-
+    public int keyCount = 0;
+    public bool isGetReward = false;
     public bool isDead = false;
+    public GameManager manager;
 
     [Header("Rotate")]
     public float mouseSpeed;
@@ -28,21 +30,37 @@ public class Player : MonoBehaviour
 
         rb.freezeRotation = true;
         isDead = false;
+        isGetReward = false;
+        keyCount = 0;
 
         cam = Camera.main;
     }
 
-    private void Update()
-    {
-        if (isDead)
-            return;
-        Rotate();
-    }
     private void FixedUpdate()
     {
-        if (isDead)
+        if (isDead || manager.isGameClear)
             return;
+        Rotate();
         Move();
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if(other.CompareTag("Key"))
+        {
+            keyCount++;
+            other.gameObject.SetActive(false);
+        }
+        if(other.CompareTag("Reward"))
+        {
+            other.gameObject.SetActive(false);
+            manager.OnClearAble();
+        }
+        if(other.CompareTag("Escape") && manager.isGameClearAble)
+        {
+            other.GetComponent<Escape>().GameClear();
+            manager.OnClear();
+        }
     }
     private void Move()
     {
@@ -68,5 +86,11 @@ public class Player : MonoBehaviour
         cam.transform.rotation = Quaternion.Euler(xRotation, yRotation, 0);
         transform.rotation = Quaternion.Euler(0, yRotation, 0);
         transform.Find("Eye").Find("Sight").rotation = Quaternion.Euler(xRotation, yRotation, 0);
+    }
+
+    public void OnDie()
+    {
+        isDead = true;
+        manager.isGameOver = true;
     }
 }
